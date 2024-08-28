@@ -28,8 +28,8 @@ class UserController {
     };
     async index(req, res) {
         try{
-            const {id} = req.params;
-            const user = await UserService.getUserById(id);
+            const {user_id} = req.params;
+            const user = await UserService.getUserById(user_id);
             if(!user){
                 return res.status(404).send("User not found");
             }

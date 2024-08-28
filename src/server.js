@@ -1,6 +1,7 @@
 const app = require('./app.js');
 const bodyParser = require('body-parser');
 
-app.listen(5002);
+const port = 5001;
+app.listen(port);
 app.use(bodyParser.json());
-console.log('Aplicação rodando na porta 5001');
+console.log(`Aplicação rodando na porta ${port}`);

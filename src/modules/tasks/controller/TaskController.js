@@ -1,7 +1,9 @@
 const taskService = require('../service/TaskService');
 const Task = require('../model/Tasks');
 const User = require('../../user/model/User');
-const taskUtils = require('../utils/TaskUtils')
+const taskUtils = require('../utils/TaskUtils');
+const logger = require('../../../utils/logger');
+const { status } = require('express/lib/response');
 
 
 class TaskController {
@@ -11,6 +13,11 @@ class TaskController {
         try{
             const user = User.findById(user_id);
             if(!user) {
+                logger.error({
+                    methode: 'create',
+                    status: 404, 
+                    message: `User ${user_id} not found`
+                    });
                 return await res.status(404).json({message : "User not Found!"});
             }
             const taskCode = await taskUtils.generateTaskCode(taskType);
@@ -23,12 +30,24 @@ class TaskController {
             });
     
             await newTask.save();
+            logger.info({
+                methode: 'create',
+                status: 200,
+                message: "Task created successfully ",
+                data: `${newTask}`
+            });
             return res.status(201).json({
                 message : 'Task succefully created',
                 data : newTask
             });
         } catch(error) {
             console.log("Error in creating a task: ", error);
+            logger.error({
+                methode: 'create',
+                status: 500,
+                message: 'Error creating task',
+                error: `${error}`
+            })
             return res.status(500).json({
                 message: "Error in creating a task",
                 data: error
@@ -39,10 +58,35 @@ class TaskController {
         const idUser= req.params;
         try{
            const tasks =  await taskService.getTaskByIdUser(idUser.userId);
-           if(!tasks) throw new Error("No tasks found");
+           if(!tasks) {
+            logger.error({
+                methode: 'taskByUser',
+                status: 404,
+                message: `Task not found`
+            });
+                return res.status(404).json({
+                    message : "Task not found",
+                    data: null
+                })
+           }
+           logger.info({
+            methode: 'taskByUser',
+            status: 200,
+            data: tasks
+           })
            return res.status(200).json(tasks);
         }catch(error){
-             return res.status(404).json(error.message || 'Error getting tasks by user')
+            console.log("Error in getting the tasks: ", error);
+            logger.error({
+                methode: 'create',
+                status: 500,
+                message: 'Error creating task',
+                error: `${error}`
+            })
+            return res.status(500).json({
+                message: "Error in creating a task",
+                data: error
+            });
         }
     }
 
@@ -80,6 +124,7 @@ class TaskController {
                 }
             );
         } catch(error) {
+            logger.error("Error in updating the task: ", error)
             console.log("Error in updating the task: ", error);
             return res.status(500).json({
                 message: "Error in updating the task",

@@ -1,3 +1,9 @@
+/**
+ * TaskService test suite
+ *
+ * @description Test suite for TaskService module
+ */
+
 const TaskService = require('../src/modules/tasks/service/TaskService');
 const TaskUtils = require('../src/modules/tasks/utils/TaskUtils');
 const mongoose = require("mongoose");
@@ -5,15 +11,22 @@ const { MongoMemoryServer } = require("mongodb-memory-server");
 
 let mongoServer;
 jest.setTimeout(10000);
-
+/**
+ * Before all tests, create a new MongoDB instance and connect to it
+ */
 beforeAll(async () => {
 
     mongoServer = await MongoMemoryServer.create();
     const mongouri = mongoServer.getUri();
     mongoose.connect(mongouri);
 })
-
+/**
+ * TaskService test suite
+ */
 describe('TaskService', () => {
+    /**
+     * Test generateTaskCode function
+     */
     describe('generateTaskCode', () => {
         it('Should generate a Task Code with 6 characters begining with the three first of the type of the Task', async () => {
             const taskType = "test";
@@ -22,6 +35,9 @@ describe('TaskService', () => {
         });
     });
     describe('createTask', () => {
+        /**
+         * Test createTask with valid task data
+         */
         it("Should create a new Task", async () => {
             const dateNow = new Date();
             const taskData = {
@@ -41,6 +57,9 @@ describe('TaskService', () => {
         });
     });
     describe('getTaskByUser', () => {
+        /**
+         * Test getTaskByUser with a valid user ID
+         */
         it("Should return all tasks of a user", async () => {
             const dateNow = new Date();
             const taskData = {
@@ -57,6 +76,9 @@ describe('TaskService', () => {
         });
     });
     describe('getTaskByCode', () =>{
+        /**
+         * Test getTaskByCode with a valid task code
+         */
         it("Should return a task by its code", async () => {
             const dateNow = new Date();
             const taskData = {
@@ -73,7 +95,13 @@ describe('TaskService', () => {
         });
     });
     describe('updateTask', () => {
+        /**
+         * Test updateTask with a valid task code and status
+         */
         it("Should update a task' status to doing", async () => {
+            /**
+             * Test suit in case of "doing" status
+             */
             const dateNow = new Date();
             const taskData = {
                 taskCode : 'TES001',
@@ -90,6 +118,9 @@ describe('TaskService', () => {
             expect(taskUpdated.status).toBe(status);
         });
         it("Should update a task' status to review", async () => {
+            /**
+             * Test suit in case of "review" status
+             */
             const dateNow = new Date();
             const taskData = {
                 taskCode : 'TES001',
@@ -107,6 +138,9 @@ describe('TaskService', () => {
 
         });
         it("Should update a task' status to onDeployment", async () => {
+            /**
+             * Test suit in case of "onDeployment" status
+             */
             const dateNow = new Date();
             const taskData = {
                 taskCode : 'TES001',
@@ -123,6 +157,9 @@ describe('TaskService', () => {
             expect(taskUpdated.status).toBe(status);
         });
         it("Should update a task' status to done", async () => {
+             /**
+             * Test suit in case of "done" status
+             */
             const dateNow = new Date();
             const taskData = {
                 taskCode : 'TES001',
@@ -158,7 +195,9 @@ describe('TaskService', () => {
 });
 
 afterAll(async () => {
-    // Fechar a conexão do mongoose e parar o servidor de banco de dados em memória após todos os testes
+    /**
+     * After all tests, disconnects to MongoDB instance and closes it.
+     **/    
     await mongoose.disconnect();
     await mongoServer.stop();
   });

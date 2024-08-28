@@ -1,2 +1,6 @@
 *.env
 nodemon.json
+/coverage/
+/logs/
+/node_modules/
+/__tests__/database.test.js

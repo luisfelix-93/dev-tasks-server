@@ -8,9 +8,9 @@ const TaskController = require('./modules/tasks/controller/TaskController');
 const routes = new Router();
 
 
-routes.get('/user/:id', UserController.index); // Get user by his Id
+routes.get('/user/:user_id', UserController.index); // Get user by his Id
 routes.post('/user', UserController.register); // Create user
-routes.get('/user/:id', UserController.user); //List all users
+routes.get('/user', UserController.user); //List all users
 routes.delete('/user/:id', UserController.destroy); //Delete a User
 
 // Tasks Routes
