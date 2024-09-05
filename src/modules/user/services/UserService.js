@@ -33,7 +33,9 @@ class UserService {
     }
     async getUserById(userId) {
         try {
-          return await User.findById(userId);
+            const user = await User.findById(userId);
+            console.log(user);
+            return user;
         } catch (error) {
           throw error;
         }

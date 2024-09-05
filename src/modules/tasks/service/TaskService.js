@@ -1,32 +1,45 @@
 const Task = require('../model/Tasks');
-const User = require('../../user/model/User')
+const User = require('../../user/model/User');
+const userService = require('../../user/services/UserService')
+const taskUtils = require('../utils/TaskUtils');
 
 class TaskService {
-    async createTask(taskCode, taskType, dateStart, note, userId) {
+    async createTask(userId, taskType, dateStart, note, managerId) {
         try{
+            const taskCode = await taskUtils.generateTaskCode(taskType);
             const status = "backlog";
-            const task = {
+            const owner =  await userService.getUserById(userId)
+            // const manager = await userService.getUserById(managerId)
+
+            const task = new Task({
                 taskCode,
                 taskType,
                 dateStart,
                 status,
                 note,
-                userId
-            };
+                owner: owner.userName,
+                manager: managerId
+            });
 
-            const newTask = new Task(task);
-            const savedTask = await newTask.save();
-            return newTask;
+            
+            await task.save();
+            return task;
         } catch (error){
             throw error
         }
     }
 
-    async getTaskByIdUser(idUser) {
+    async getTaskByOwner(userId) {
         try{
-           const task = Task.find({idUser});
-           if(!task) throw 'No tasks found for this user';
-           return await task;
+            const user = await userService.getUserById(userId)
+            if(!user){
+                return 'User don`t exist';
+            }
+            const owner = user.userName;
+            const tasks = Task.find({owner})
+
+            return tasks;
+
         } catch (error){
             throw error
         }
@@ -44,17 +57,18 @@ class TaskService {
         try {
 
             const task = await Task.findOne(
-                { 
+                {
                     taskCode
                 }
-            ); 
+            );
             if (!task) {
                 return 'Task not found'
             }
-    
+
             const idTask = task._id;
+            let dateStart;
             let dateEnd;
-    
+
             if (status === 'doing') {
                 const dateStart = Date.now();
                 dateEnd = new Date(dateStart);
@@ -62,27 +76,33 @@ class TaskService {
                 const taskUpdate = await Task.findByIdAndUpdate(idTask, { dateStart, dateEnd, status }, { new: true });
                 return taskUpdate;
             }
-            
+
             if (status === 'review') {
                 dateEnd = new Date(Date.now());
                 dateEnd.setDate(dateEnd.getDate() + 3);
+                dateStart = new Date(Date.now());
+                const note = `review the task ${task}`
                 const taskUpdate = await Task.findByIdAndUpdate(idTask, { dateEnd, status }, { new: true });
-                return taskUpdate;
+                const taskType = 'review';
+                const owner = task.manager;
+                const manager = null;
+                const newTask = await this.createTask(owner, taskType, dateStart, note, manager)
+                return {taskUpdate , newTask};
             }
-    
+
             if (status === 'onDeployment') {
                 dateEnd = new Date(Date.now());
                 dateEnd.setDate(dateEnd.getDate() + 2);
                 const taskUpdate = await Task.findByIdAndUpdate(idTask, { dateEnd, status }, { new: true });
                 return taskUpdate;
             }
-    
+
             if (status === 'done') {
                 dateEnd = Date.now();
                 const taskUpdate = await Task.findByIdAndUpdate(idTask, { dateEnd, status }, { new: true });
                 return taskUpdate;
             }
-    
+
             throw new Error('Invalid status');
         } catch (error) {
             throw new Error(`Error updating task: ${error}`);
@@ -99,7 +119,7 @@ class TaskService {
     //     } catch (error){
     //         throw error
     //     }
-    // }  
+    // }
 }
 
 module.exports = new TaskService();

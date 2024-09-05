@@ -14,7 +14,7 @@ routes.get('/user', UserController.user); //List all users
 routes.delete('/user/:id', UserController.destroy); //Delete a User
 
 // Tasks Routes
-routes.use(auth);
+// routes.use(auth);
 routes.post('/user/:user_id/task', TaskControlller.create); // Create task
 routes.get('/user/:user_id/task', TaskControlller.taskByUser); // Get all the Task by users
 routes.get('/task', TaskControlller.taskByCode); //Get task by TaskCode

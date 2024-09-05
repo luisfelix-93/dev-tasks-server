@@ -7,57 +7,45 @@ const { status } = require('express/lib/response');
 
 
 class TaskController {
+
     async create(req, res) {
         const {user_id} = req.params;
-        const {taskType, dateStart, note} = req.body;
-        try{
-            const user = User.findById(user_id);
-            if(!user) {
-                logger.error({
-                    methode: 'create',
-                    status: 404, 
-                    message: `User ${user_id} not found`
-                    });
-                return await res.status(404).json({message : "User not Found!"});
-            }
-            const taskCode = await taskUtils.generateTaskCode(taskType);
-            const newTask = new Task({
-                taskCode,
-                taskType,
-                dateStart,
-                note,
-                userId : user_id
-            });
-    
-            await newTask.save();
+        const { taskType,  dateStart , note, managerId} = req.body;
+
+        try {
+            const task = await taskService.createTask(user_id, taskType, dateStart, note, managerId);
+            console.log(task);
             logger.info({
                 methode: 'create',
-                status: 200,
-                message: "Task created successfully ",
-                data: `${newTask}`
+                status: 201,
+                message: 'Task created successfully',   
+                data: task
             });
+
             return res.status(201).json({
-                message : 'Task succefully created',
-                data : newTask
-            });
-        } catch(error) {
-            console.log("Error in creating a task: ", error);
+                message: 'Task created successfully',   
+                data: task
+            })
+
+        } catch(error){
+            console.log(`Error creating the task, ${error}`);
             logger.error({
                 methode: 'create',
                 status: 500,
-                message: 'Error creating task',
-                error: `${error}`
+                message: `Error creating the task`,
+                data: error
             })
             return res.status(500).json({
-                message: "Error in creating a task",
+                status: 500,
+                message: `Error creating the task`,
                 data: error
-            });
-        } 
+            })
+        }
     }
     async taskByUser(req, res){
-        const idUser= req.params;
+        const {user_id}= req.params;
         try{
-           const tasks =  await taskService.getTaskByIdUser(idUser.userId);
+           const tasks =  await taskService.getTaskByOwner(user_id);
            if(!tasks) {
             logger.error({
                 methode: 'taskByUser',
@@ -142,6 +130,8 @@ class TaskController {
     //         return res.status(500).json({message: error});
     //     }
     // }
+
+
 }
 
  module.exports = new TaskController();
